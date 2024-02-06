@@ -6,23 +6,30 @@ import co.elastic.clients.transport.ElasticsearchTransport;
 import co.elastic.clients.transport.rest_client.RestClientTransport;
 import org.apache.http.HttpHost;
 import org.elasticsearch.client.RestClient;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
 public class ElasticSearchClientProvider {
-    @Value("${app.elastic.url}")
-    private static String serverUrl;
-
     public ElasticsearchClient getClient() {
         RestClient restClient = RestClient
-                .builder(HttpHost.create(serverUrl))
+                .builder(HttpHost.create("http://192.168.100.97:9200"))
                 .build();
 
         ElasticsearchTransport transport = new RestClientTransport(
                 restClient, new JacksonJsonpMapper());
 
-        ElasticsearchClient esClient = new ElasticsearchClient(transport);
-        return esClient;
+        return new ElasticsearchClient(transport);
+    }
+
+    public Boolean createIndex(String indexTitle) {
+        ElasticsearchClient esClient = getClient();
+        try {
+            esClient.indices().create(c -> c
+                    .index(indexTitle)
+            );
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
     }
 }
